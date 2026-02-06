@@ -1,0 +1,69 @@
+package com.stringcode.websocket_app.service.impl;
+
+
+
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stringcode.websocket_app.dto.ChatMessageDto;
+
+import com.stringcode.websocket_app.enums.MessageType;
+import com.stringcode.websocket_app.service.ChatService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Service
+@RequiredArgsConstructor
+public class ChatServiceImpl implements ChatService {
+
+    private final ObjectMapper objectMapper;
+
+    // session → username mapping
+    private final Map<WebSocketSession, String> sessions = new ConcurrentHashMap<>();
+
+    @Override
+    public void register(WebSocketSession session, String username) {
+        sessions.put(session, username);
+
+        broadcast(new ChatMessageDto(
+                MessageType.JOIN,
+                "SYSTEM",
+                username + " joined the chat"
+        ));
+    }
+
+    @Override
+    public void unregister(WebSocketSession session) {
+        String username = sessions.remove(session);
+
+        if (username != null) {
+            broadcast(new ChatMessageDto(
+                    MessageType.LEAVE,
+                    "SYSTEM",
+                    username + " left the chat"
+            ));
+        }
+    }
+
+    @Override
+    public void handleMessage(WebSocketSession session, ChatMessageDto message) {
+        if (message.getType() == MessageType.CHAT) {
+            broadcast(message);
+        }
+    }
+
+    private void broadcast(ChatMessageDto message) {
+        sessions.keySet().forEach(session -> {
+            if (session.isOpen()) {
+                try {
+                    String json = objectMapper.writeValueAsString(message);
+                    session.sendMessage(new TextMessage(json));
+                } catch (Exception ignored) {}
+            }
+        });
+    }
+}
