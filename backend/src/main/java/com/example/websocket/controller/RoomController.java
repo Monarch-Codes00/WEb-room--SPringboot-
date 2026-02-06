@@ -22,4 +22,10 @@ public class RoomController {
         roomService.addUserToRoom(message.getUsername(), message.getRoom());
         messagingTemplate.convertAndSend("/topic/room/" + message.getRoom(), message.getUsername() + " joined the room.");
     }
+
+    @MessageMapping("/leave")
+    public void leaveRoom(@Payload MessageDTO message) {
+        roomService.removeUserFromRoom(message.getUsername(), message.getRoom());
+        messagingTemplate.convertAndSend("/topic/room/" + message.getRoom(), message.getUsername() + " left the room.");
+    }
 }
