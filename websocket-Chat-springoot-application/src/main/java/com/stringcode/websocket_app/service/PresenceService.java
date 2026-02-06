@@ -14,12 +14,12 @@ public class PresenceService {
     private final Map<String, Long> userLastSeenMap = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> roomUsersMap = new ConcurrentHashMap<>();
 
-    public void addUserToRoom(String user, String room) {
+    public synchronized void addUserToRoom(String user, String room) {
         userRoomMap.put(user, room);
         roomUsersMap.computeIfAbsent(room, k -> ConcurrentHashMap.newKeySet()).add(user);
     }
 
-    public void removeUserFromRoom(String user, String room) {
+    public synchronized void removeUserFromRoom(String user, String room) {
         userRoomMap.remove(user);
         Set<String> users = roomUsersMap.getOrDefault(room, Collections.emptySet());
         users.remove(user);
@@ -38,5 +38,13 @@ public class PresenceService {
 
     public Set<String> getOnlineUsers() {
         return userRoomMap.keySet();
+    }
+
+    public String getUserRoom(String user) {
+        return userRoomMap.get(user);
+    }
+
+    public void broadcastSystemMessage(String room, String message) {
+        // Logic to broadcast system messages to all users in the room
     }
 }
