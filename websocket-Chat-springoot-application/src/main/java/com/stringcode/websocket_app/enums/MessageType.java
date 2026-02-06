@@ -6,5 +6,6 @@ public enum MessageType {
     PING,
     SYSTEM,
     ROOM_PRESENCE,
-    ONLINE_USERS
+    ONLINE_USERS,
+    CHAT // Added CHAT to support chat messages
 }
