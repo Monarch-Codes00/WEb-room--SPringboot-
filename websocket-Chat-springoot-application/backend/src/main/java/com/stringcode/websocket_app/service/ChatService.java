@@ -1,3 +1,5 @@
+package com.stringcode.websocket_app.service;
+
 import com.stringcode.websocket_app.dto.WebSocketMessageDto;
 import org.springframework.web.socket.WebSocketSession;
 

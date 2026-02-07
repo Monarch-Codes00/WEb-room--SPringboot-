@@ -49,7 +49,7 @@ public class ChatServiceImpl implements ChatService {
                 }
                 broadcastToRoom(roomId, new WebSocketMessageDto(
                         MessageType.LEAVE,
-                        Map.of("username", username, "roomName", roomId),
+                        Map.of("username", username, "roomId", roomId),
                         LocalDateTime.now(),
                         "SYSTEM",
                         "SYSTEM"
@@ -114,7 +114,7 @@ public class ChatServiceImpl implements ChatService {
 
         WebSocketMessageDto response = new WebSocketMessageDto(
                 MessageType.JOIN,
-                Map.of("username", username, "roomName", roomId),
+                Map.of("username", username, "roomId", roomId),
                 LocalDateTime.now(),
                 "SYSTEM",
                 "SYSTEM"
@@ -136,7 +136,7 @@ public class ChatServiceImpl implements ChatService {
 
         broadcastToRoom(roomId, new WebSocketMessageDto(
                 MessageType.LEAVE,
-                Map.of("username", username, "roomName", roomId),
+                Map.of("username", username, "roomId", roomId),
                 LocalDateTime.now(),
                 "SYSTEM",
                 "SYSTEM"
@@ -149,7 +149,7 @@ public class ChatServiceImpl implements ChatService {
         String roomId = (String) payload.get("roomId");
 
         Set<String> usernames = roomToUsers.getOrDefault(roomId, Collections.emptySet());
-        List<Map<String, Object>> users = usernames.stream()
+        List<Map<String, String>> users = usernames.stream()
                 .map(u -> Map.of("username", u, "status", "online"))
                 .collect(Collectors.toList());
 
@@ -162,7 +162,7 @@ public class ChatServiceImpl implements ChatService {
         ));
     }
 
-    private List<Map<String, Object>> getOnlineUsersList() {
+    private List<Map<String, String>> getOnlineUsersList() {
         return sessions.values().stream()
                 .map(u -> Map.of("username", u, "status", "online"))
                 .collect(Collectors.toList());
