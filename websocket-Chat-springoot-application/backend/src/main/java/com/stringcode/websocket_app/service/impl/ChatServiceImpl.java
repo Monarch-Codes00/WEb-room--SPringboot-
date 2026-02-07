@@ -11,8 +11,9 @@ import org.springframework.web.socket.WebSocketSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,63 +24,168 @@ public class ChatServiceImpl implements ChatService {
 
     // session → username mapping
     private final Map<WebSocketSession, String> sessions = new ConcurrentHashMap<>();
+    
+    // username -> room mapping
+    private final Map<String, String> userToRoom = new ConcurrentHashMap<>();
+    
+    // roomId -> Set of usernames
+    private final Map<String, Set<String>> roomToUsers = new ConcurrentHashMap<>();
 
     @Override
     public void register(WebSocketSession session, String username) {
         sessions.put(session, username);
-
-        broadcast(new WebSocketMessageDto(
-                MessageType.JOIN,
-                Map.of("username", username, "message", username + " joined the chat"),
-                LocalDateTime.now(),
-                "SYSTEM",
-                "SYSTEM"
-        ));
+        logger.info("User registered: {}", username);
     }
 
     @Override
     public void unregister(WebSocketSession session) {
         String username = sessions.remove(session);
-
         if (username != null) {
-            broadcast(new WebSocketMessageDto(
-                    MessageType.LEAVE,
-                    Map.of("username", username, "message", username + " left the chat"),
-                    LocalDateTime.now(),
-                    "SYSTEM",
-                    "SYSTEM"
-            ));
+            String roomId = userToRoom.remove(username);
+            if (roomId != null) {
+                Set<String> users = roomToUsers.get(roomId);
+                if (users != null) {
+                    users.remove(username);
+                }
+                broadcastToRoom(roomId, new WebSocketMessageDto(
+                        MessageType.LEAVE,
+                        Map.of("username", username, "roomName", roomId),
+                        LocalDateTime.now(),
+                        "SYSTEM",
+                        "SYSTEM"
+                ));
+            }
+            logger.info("User unregistered: {}", username);
         }
     }
 
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessageDto message) {
+        String username = sessions.get(session);
+        if (username == null) return;
+
         switch (message.getType()) {
+            case JOIN:
+                handleJoin(session, message);
+                break;
+            case LEAVE:
+                handleLeave(session, message);
+                break;
             case CHAT:
-                broadcast(message);
+                String roomId = userToRoom.get(username);
+                if (roomId != null) {
+                    broadcastToRoom(roomId, message);
+                }
+                break;
+            case ONLINE_USERS:
+                sendToSession(session, new WebSocketMessageDto(
+                        MessageType.ONLINE_USERS,
+                        Map.of("users", getOnlineUsersList()),
+                        LocalDateTime.now(),
+                        "SYSTEM",
+                        "SYSTEM"
+                ));
+                break;
+            case ROOM_PRESENCE:
+                handleRoomPresence(session, message);
                 break;
             case PING:
-                logger.info("Received PING from user: {}", sessions.get(session));
+                // Silent ping or respond if needed
                 break;
             default:
                 logger.warn("Unhandled message type: {}", message.getType());
         }
     }
 
-    private void broadcast(WebSocketMessageDto message) {
+    private void handleJoin(WebSocketSession session, WebSocketMessageDto message) {
+        if (!(message.getPayload() instanceof Map)) return;
+        Map<String, Object> payload = (Map<String, Object>) message.getPayload();
+        String username = (String) payload.get("username");
+        String roomId = (String) payload.get("roomId");
+
+        // Remove from old room
+        String oldRoom = userToRoom.get(username);
+        if (oldRoom != null) {
+            roomToUsers.getOrDefault(oldRoom, Collections.emptySet()).remove(username);
+        }
+
+        userToRoom.put(username, roomId);
+        roomToUsers.computeIfAbsent(roomId, k -> ConcurrentHashMap.newKeySet()).add(username);
+
+        WebSocketMessageDto response = new WebSocketMessageDto(
+                MessageType.JOIN,
+                Map.of("username", username, "roomName", roomId),
+                LocalDateTime.now(),
+                "SYSTEM",
+                "SYSTEM"
+        );
+        broadcastToRoom(roomId, response);
+    }
+
+    private void handleLeave(WebSocketSession session, WebSocketMessageDto message) {
+        if (!(message.getPayload() instanceof Map)) return;
+        Map<String, Object> payload = (Map<String, Object>) message.getPayload();
+        String username = (String) payload.get("username");
+        String roomId = (String) payload.get("roomId");
+
+        userToRoom.remove(username);
+        Set<String> users = roomToUsers.get(roomId);
+        if (users != null) {
+            users.remove(username);
+        }
+
+        broadcastToRoom(roomId, new WebSocketMessageDto(
+                MessageType.LEAVE,
+                Map.of("username", username, "roomName", roomId),
+                LocalDateTime.now(),
+                "SYSTEM",
+                "SYSTEM"
+        ));
+    }
+
+    private void handleRoomPresence(WebSocketSession session, WebSocketMessageDto message) {
+        if (!(message.getPayload() instanceof Map)) return;
+        Map<String, Object> payload = (Map<String, Object>) message.getPayload();
+        String roomId = (String) payload.get("roomId");
+
+        Set<String> usernames = roomToUsers.getOrDefault(roomId, Collections.emptySet());
+        List<Map<String, Object>> users = usernames.stream()
+                .map(u -> Map.of("username", u, "status", "online"))
+                .collect(Collectors.toList());
+
+        sendToSession(session, new WebSocketMessageDto(
+                MessageType.ROOM_PRESENCE,
+                Map.of("roomId", roomId, "users", users),
+                LocalDateTime.now(),
+                "SYSTEM",
+                "SYSTEM"
+        ));
+    }
+
+    private List<Map<String, Object>> getOnlineUsersList() {
+        return sessions.values().stream()
+                .map(u -> Map.of("username", u, "status", "online"))
+                .collect(Collectors.toList());
+    }
+
+    private void broadcastToRoom(String roomId, WebSocketMessageDto message) {
+        Set<String> roomUsernames = roomToUsers.getOrDefault(roomId, Collections.emptySet());
+        sessions.forEach((session, username) -> {
+            if (roomUsernames.contains(username) && session.isOpen()) {
+                sendToSession(session, message);
+            }
+        });
+    }
+
+    private void sendToSession(WebSocketSession session, WebSocketMessageDto message) {
         if (message.getTimestamp() == null) {
             message.setTimestamp(LocalDateTime.now());
         }
-        
-        sessions.keySet().forEach(session -> {
-            if (session.isOpen()) {
-                try {
-                    String json = objectMapper.writeValueAsString(message);
-                    session.sendMessage(new TextMessage(json));
-                } catch (Exception e) {
-                    logger.error("Failed to send message to session: {}", session.getId(), e);
-                }
-            }
-        });
+        try {
+            String json = objectMapper.writeValueAsString(message);
+            session.sendMessage(new TextMessage(json));
+        } catch (Exception e) {
+            logger.error("Failed to send message to session: {}", session.getId(), e);
+        }
     }
 }

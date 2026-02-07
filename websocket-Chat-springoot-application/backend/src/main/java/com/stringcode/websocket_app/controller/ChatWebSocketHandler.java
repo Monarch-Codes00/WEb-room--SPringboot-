@@ -24,24 +24,24 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-
         WebSocketMessageDto wsMessage =
                 objectMapper.readValue(message.getPayload(), WebSocketMessageDto.class);
 
         if (wsMessage.getType() == MessageType.JOIN) {
-            // In the frontend, JOIN payload contains { username, roomId }
+            String username = null;
             if (wsMessage.getPayload() instanceof Map) {
                 Map<String, Object> payload = (Map<String, Object>) wsMessage.getPayload();
-                String username = (String) payload.get("username");
-                chatService.register(session, username);
-            } else {
-                chatService.register(session, wsMessage.getSenderName());
+                username = (String) payload.get("username");
             }
-        } else {
-            // Need to adjust ChatService.handleMessage to take WebSocketMessageDto or convert
-            // For now, let's keep it simple or update ChatService too
-            chatService.handleMessage(session, wsMessage);
+            if (username == null) {
+                username = wsMessage.getSenderName();
+            }
+            if (username != null) {
+                chatService.register(session, username);
+            }
         }
+        
+        chatService.handleMessage(session, wsMessage);
     }
 
     @Override
