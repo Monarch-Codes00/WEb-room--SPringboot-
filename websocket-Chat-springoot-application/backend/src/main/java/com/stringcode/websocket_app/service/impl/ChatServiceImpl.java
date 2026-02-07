@@ -1,21 +1,16 @@
 package com.stringcode.websocket_app.service.impl;
 
-
-
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.stringcode.websocket_app.dto.ChatMessageDto;
-
+import com.stringcode.websocket_app.dto.WebSocketMessageDto;
 import com.stringcode.websocket_app.enums.MessageType;
 import com.stringcode.websocket_app.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChatServiceImpl implements ChatService {
 
     private static final Logger logger = LoggerFactory.getLogger(ChatServiceImpl.class);
-
     private final ObjectMapper objectMapper;
 
     // session → username mapping
@@ -34,10 +28,12 @@ public class ChatServiceImpl implements ChatService {
     public void register(WebSocketSession session, String username) {
         sessions.put(session, username);
 
-        broadcast(new ChatMessageDto(
+        broadcast(new WebSocketMessageDto(
                 MessageType.JOIN,
+                Map.of("username", username, "message", username + " joined the chat"),
+                LocalDateTime.now(),
                 "SYSTEM",
-                username + " joined the chat"
+                "SYSTEM"
         ));
     }
 
@@ -46,16 +42,18 @@ public class ChatServiceImpl implements ChatService {
         String username = sessions.remove(session);
 
         if (username != null) {
-            broadcast(new ChatMessageDto(
+            broadcast(new WebSocketMessageDto(
                     MessageType.LEAVE,
+                    Map.of("username", username, "message", username + " left the chat"),
+                    LocalDateTime.now(),
                     "SYSTEM",
-                    username + " left the chat"
+                    "SYSTEM"
             ));
         }
     }
 
     @Override
-    public void handleMessage(WebSocketSession session, ChatMessageDto message) {
+    public void handleMessage(WebSocketSession session, WebSocketMessageDto message) {
         switch (message.getType()) {
             case CHAT:
                 broadcast(message);
@@ -68,7 +66,11 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private void broadcast(ChatMessageDto message) {
+    private void broadcast(WebSocketMessageDto message) {
+        if (message.getTimestamp() == null) {
+            message.setTimestamp(LocalDateTime.now());
+        }
+        
         sessions.keySet().forEach(session -> {
             if (session.isOpen()) {
                 try {

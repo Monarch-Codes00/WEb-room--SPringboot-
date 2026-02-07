@@ -1,6 +1,4 @@
-package com.stringcode.websocket_app.service;
-
-import com.stringcode.websocket_app.dto.ChatMessageDto;
+import com.stringcode.websocket_app.dto.WebSocketMessageDto;
 import org.springframework.web.socket.WebSocketSession;
 
 public interface ChatService {
@@ -9,5 +7,5 @@ public interface ChatService {
 
     void unregister(WebSocketSession session);
 
-    void handleMessage(WebSocketSession session, ChatMessageDto message);
+    void handleMessage(WebSocketSession session, WebSocketMessageDto message);
 }
