@@ -19,7 +19,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
-        // username will be sent as first JOIN message
+    
     }
 
     @Override

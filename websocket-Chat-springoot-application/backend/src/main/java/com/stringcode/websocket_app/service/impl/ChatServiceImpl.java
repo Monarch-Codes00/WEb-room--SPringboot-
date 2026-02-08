@@ -84,7 +84,7 @@ public class ChatServiceImpl implements ChatService {
                 }
                 break;
             case ONLINE_USERS:
-                broadcastOnlineUsers(); // Broadcast to everyone or just sender? Requirement says immediately reflected.
+                broadcastOnlineUsers(); 
                 break;
             case ROOM_PRESENCE:
                 if (message.getPayload() instanceof Map) {
@@ -94,7 +94,7 @@ public class ChatServiceImpl implements ChatService {
                 }
                 break;
             case PING:
-                // Silent ping or respond if needed
+                
                 break;
             default:
                 logger.warn("Unhandled message type: {}", message.getType());
@@ -107,7 +107,7 @@ public class ChatServiceImpl implements ChatService {
         String username = (String) payload.get("username");
         String roomId = (String) payload.get("roomId");
 
-        // Remove from old room and notify
+   
         String oldRoom = userToRoom.get(username);
         if (oldRoom != null && !oldRoom.equals(roomId)) {
             Set<String> oldUsers = roomToUsers.get(oldRoom);
@@ -194,7 +194,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     private List<Map<String, String>> getOnlineUsersList() {
-        // Use a map to ensure unique usernames if multiple sessions exist for the same user
+       
         Map<String, Map<String, String>> uniqueUsers = new HashMap<>();
         
         sessions.values().forEach(u -> {

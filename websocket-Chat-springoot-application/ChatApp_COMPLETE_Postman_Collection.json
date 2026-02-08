@@ -1,0 +1,113 @@
+{
+	"info": {
+		"_postman_id": "chat-app-full-features",
+		"name": "Spring Boot Chat App - ALL FEATURES",
+		"description": "Complete WebSocket testing collection for every implemented feature: Login, Rooms, Chatting, and Presence tracking.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. Establish Connection",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "wss://chat-backend-joc9.onrender.com/ws",
+					"protocol": "wss",
+					"host": [
+						"chat-backend-joc9.onrender.com"
+					],
+					"path": [
+						"ws"
+					]
+				},
+				"description": "Click 'Connect' to start. All other features are sent as JSON messages through this connection."
+			},
+			"response": []
+		},
+		{
+			"name": "1. Feature: Login & Register",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": ""
+				},
+				"description": "JSON Payload to send:\n\n{\n  \"type\": \"LOGIN\",\n  \"username\": \"JohnDoe\"\n}"
+			},
+			"response": []
+		},
+		{
+			"name": "2. Feature: Join Chat Room",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": ""
+				},
+				"description": "JSON Payload to send:\n\n{\n  \"type\": \"JOIN\",\n  \"username\": \"JohnDoe\",\n  \"roomId\": \"general\"\n}"
+			},
+			"response": []
+		},
+		{
+			"name": "3. Feature: Send Chat Message",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": ""
+				},
+				"description": "JSON Payload to send:\n\n{\n  \"type\": \"CHAT\",\n  \"username\": \"JohnDoe\",\n  \"roomId\": \"general\",\n  \"content\": \"Hey everyone, checking in!\"\n}"
+			},
+			"response": []
+		},
+		{
+			"name": "4. Feature: Request Online Users List",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": ""
+				},
+				"description": "JSON Payload to send:\n\n{\n  \"type\": \"ONLINE_USERS\",\n  \"username\": \"JohnDoe\"\n}"
+			},
+			"response": []
+		},
+		{
+			"name": "5. Feature: Leave Room",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": ""
+				},
+				"description": "JSON Payload to send:\n\n{\n  \"type\": \"LEAVE\",\n  \"username\": \"JohnDoe\",\n  \"roomId\": \"general\"\n}"
+			},
+			"response": []
+		},
+		{
+			"name": "6. Feature: Heartbeat (Ping)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": ""
+				},
+				"description": "Keep connection alive on hosting platforms like Render:\n\n{\n  \"type\": \"PING\",\n  \"username\": \"JohnDoe\"\n}"
+			},
+			"response": []
+		},
+		{
+			"name": "7. Feature: Room Presence Info",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": ""
+				},
+				"description": "Request members of a specific room:\n\n{\n  \"type\": \"ROOM_PRESENCE\",\n  \"username\": \"JohnDoe\",\n  \"roomId\": \"general\"\n}"
+			},
+			"response": []
+		}
+	]
+}
