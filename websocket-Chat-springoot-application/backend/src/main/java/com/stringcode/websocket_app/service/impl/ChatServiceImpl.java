@@ -35,6 +35,7 @@ public class ChatServiceImpl implements ChatService {
     public void register(WebSocketSession session, String username) {
         sessions.put(session, username);
         logger.info("User registered: {}", username);
+        broadcastOnlineUsers();
     }
 
     @Override
@@ -54,8 +55,10 @@ public class ChatServiceImpl implements ChatService {
                         "SYSTEM",
                         "SYSTEM"
                 ));
+                broadcastRoomPresence(roomId);
             }
             logger.info("User unregistered: {}", username);
+            broadcastOnlineUsers();
         }
     }
 
@@ -78,16 +81,14 @@ public class ChatServiceImpl implements ChatService {
                 }
                 break;
             case ONLINE_USERS:
-                sendToSession(session, new WebSocketMessageDto(
-                        MessageType.ONLINE_USERS,
-                        Map.of("users", getOnlineUsersList()),
-                        LocalDateTime.now(),
-                        "SYSTEM",
-                        "SYSTEM"
-                ));
+                broadcastOnlineUsers(); // Broadcast to everyone or just sender? Requirement says immediately reflected.
                 break;
             case ROOM_PRESENCE:
-                handleRoomPresence(session, message);
+                if (message.getPayload() instanceof Map) {
+                    Map<String, Object> payload = (Map<String, Object>) message.getPayload();
+                    String rId = (String) payload.get("roomId");
+                    if (rId != null) broadcastRoomPresence(rId);
+                }
                 break;
             case PING:
                 // Silent ping or respond if needed
@@ -103,10 +104,21 @@ public class ChatServiceImpl implements ChatService {
         String username = (String) payload.get("username");
         String roomId = (String) payload.get("roomId");
 
-        // Remove from old room
+        // Remove from old room and notify
         String oldRoom = userToRoom.get(username);
-        if (oldRoom != null) {
-            roomToUsers.getOrDefault(oldRoom, Collections.emptySet()).remove(username);
+        if (oldRoom != null && !oldRoom.equals(roomId)) {
+            Set<String> oldUsers = roomToUsers.get(oldRoom);
+            if (oldUsers != null) {
+                oldUsers.remove(username);
+                broadcastToRoom(oldRoom, new WebSocketMessageDto(
+                        MessageType.LEAVE,
+                        Map.of("username", username, "roomId", oldRoom),
+                        LocalDateTime.now(),
+                        "SYSTEM",
+                        "SYSTEM"
+                ));
+                broadcastRoomPresence(oldRoom);
+            }
         }
 
         userToRoom.put(username, roomId);
@@ -120,6 +132,8 @@ public class ChatServiceImpl implements ChatService {
                 "SYSTEM"
         );
         broadcastToRoom(roomId, response);
+        broadcastRoomPresence(roomId);
+        broadcastOnlineUsers();
     }
 
     private void handleLeave(WebSocketSession session, WebSocketMessageDto message) {
@@ -141,25 +155,39 @@ public class ChatServiceImpl implements ChatService {
                 "SYSTEM",
                 "SYSTEM"
         ));
+        broadcastRoomPresence(roomId);
+        broadcastOnlineUsers();
     }
 
-    private void handleRoomPresence(WebSocketSession session, WebSocketMessageDto message) {
-        if (!(message.getPayload() instanceof Map)) return;
-        Map<String, Object> payload = (Map<String, Object>) message.getPayload();
-        String roomId = (String) payload.get("roomId");
-
+    private void broadcastRoomPresence(String roomId) {
         Set<String> usernames = roomToUsers.getOrDefault(roomId, Collections.emptySet());
         List<Map<String, String>> users = usernames.stream()
                 .map(u -> Map.of("username", u, "status", "online"))
                 .collect(Collectors.toList());
 
-        sendToSession(session, new WebSocketMessageDto(
+        broadcastToRoom(roomId, new WebSocketMessageDto(
                 MessageType.ROOM_PRESENCE,
                 Map.of("roomId", roomId, "users", users),
                 LocalDateTime.now(),
                 "SYSTEM",
                 "SYSTEM"
         ));
+    }
+
+    private void broadcastOnlineUsers() {
+        WebSocketMessageDto message = new WebSocketMessageDto(
+                MessageType.ONLINE_USERS,
+                Map.of("users", getOnlineUsersList()),
+                LocalDateTime.now(),
+                "SYSTEM",
+                "SYSTEM"
+        );
+        
+        sessions.keySet().forEach(session -> {
+            if (session.isOpen()) {
+                sendToSession(session, message);
+            }
+        });
     }
 
     private List<Map<String, String>> getOnlineUsersList() {

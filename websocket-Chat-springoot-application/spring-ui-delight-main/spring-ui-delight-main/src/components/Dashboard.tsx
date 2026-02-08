@@ -76,17 +76,30 @@ export function Dashboard() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="lg:col-span-5 xl:col-span-4 space-y-6"
+            className="lg:col-span-12 xl:col-span-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-6"
           >
             <div className="h-[300px]">
               <OnlineUsersPanel
                 users={onlineUsers}
                 onRefresh={requestOnlineUsers}
                 currentUsername={username}
+                title="Global Online Users"
               />
             </div>
 
-            <div className="h-[350px]">
+            {currentRoom && (
+              <div className="h-[300px]">
+                <OnlineUsersPanel
+                  users={rooms.find(r => r.id === currentRoom)?.users || []}
+                  onRefresh={() => {}}
+                  currentUsername={username}
+                  title="Room Members"
+                  icon={<Users className="h-4 w-4 text-success" />}
+                />
+              </div>
+            )}
+
+            <div className="h-[350px] md:col-span-2 xl:col-span-1">
               <NotificationsFeed notifications={notifications} />
             </div>
           </motion.aside>

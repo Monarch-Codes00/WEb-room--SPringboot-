@@ -11,16 +11,24 @@ interface OnlineUsersPanelProps {
   users: User[];
   onRefresh: () => void;
   currentUsername?: string | null;
+  title?: string;
+  icon?: React.ReactNode;
 }
 
-export function OnlineUsersPanel({ users, onRefresh, currentUsername }: OnlineUsersPanelProps) {
+export function OnlineUsersPanel({ 
+  users, 
+  onRefresh, 
+  currentUsername, 
+  title = "Online Users",
+  icon = <Users className="h-4 w-4 text-primary" />
+}: OnlineUsersPanelProps) {
   return (
     <Card className="h-full">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
-            <Users className="h-4 w-4 text-primary" />
-            Online Users
+            {icon}
+            {title}
             <span className="ml-1 flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-success/20 text-success text-xs font-medium">
               {users.length}
             </span>
