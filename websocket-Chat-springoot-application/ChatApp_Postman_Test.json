@@ -1,0 +1,29 @@
+{
+	"info": {
+		"_postman_id": "chat-app-test-collection",
+		"name": "Spring Boot Chat App - WebSockets",
+		"description": "Collection for testing the WebSocket-based chat application on Render.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Connect to Chat",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "wss://chat-backend-joc9.onrender.com/ws",
+					"protocol": "wss",
+					"host": [
+						"chat-backend-joc9.onrender.com"
+					],
+					"path": [
+						"ws"
+					]
+				},
+				"description": "Establish the WebSocket connection. After connecting, use the following JSONs in the Message tab:\n\n1. LOGIN:\n{\n  \"type\": \"LOGIN\",\n  \"username\": \"PostmanTester\"\n}\n\n2. JOIN ROOM:\n{\n  \"type\": \"JOIN\",\n  \"username\": \"PostmanTester\",\n  \"roomId\": \"general\"\n}\n\n3. MESSAGE:\n{\n  \"type\": \"CHAT\",\n  \"username\": \"PostmanTester\",\n  \"roomId\": \"general\",\n  \"content\": \"Hello!\"\n}"
+			},
+			"response": []
+		}
+	]
+}
