@@ -27,7 +27,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         WebSocketMessageDto wsMessage =
                 objectMapper.readValue(message.getPayload(), WebSocketMessageDto.class);
 
-        if (wsMessage.getType() == MessageType.JOIN) {
+        if (wsMessage.getType() == MessageType.JOIN || wsMessage.getType() == MessageType.LOGIN) {
             String username = null;
             if (wsMessage.getPayload() instanceof Map) {
                 Map<String, Object> payload = (Map<String, Object>) wsMessage.getPayload();

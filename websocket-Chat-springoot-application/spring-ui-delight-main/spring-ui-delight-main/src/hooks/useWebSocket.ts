@@ -115,7 +115,8 @@ export function useWebSocket(username: string | null) {
         addNotification('Connected to server', 'success');
         startHeartbeat();
         
-        // Request online users after connection
+        // Request login registration and online users after connection
+        sendMessage(MessageType.LOGIN, { username });
         sendMessage(MessageType.ONLINE_USERS, { username });
       };
 

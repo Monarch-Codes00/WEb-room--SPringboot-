@@ -68,6 +68,9 @@ public class ChatServiceImpl implements ChatService {
         if (username == null) return;
 
         switch (message.getType()) {
+            case LOGIN:
+                broadcastOnlineUsers();
+                break;
             case JOIN:
                 handleJoin(session, message);
                 break;
