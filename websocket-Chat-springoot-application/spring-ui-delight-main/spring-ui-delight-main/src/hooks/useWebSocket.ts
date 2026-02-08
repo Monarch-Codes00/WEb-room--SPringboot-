@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { MessageType, WebSocketMessage, User, Room, ConnectionState, SystemNotification } from '@/types/websocket';
 
-const WEBSOCKET_URL = 'ws://localhost:8080/ws'; // Update this to your Spring Boot WebSocket URL
+const WEBSOCKET_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8080/ws';
 const HEARTBEAT_INTERVAL = 30000; // 30 seconds
 const RECONNECT_DELAY = 3000;
 const MAX_RECONNECT_ATTEMPTS = 5;
