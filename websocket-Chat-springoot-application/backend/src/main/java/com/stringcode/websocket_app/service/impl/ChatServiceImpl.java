@@ -194,18 +194,21 @@ public class ChatServiceImpl implements ChatService {
     }
 
     private List<Map<String, String>> getOnlineUsersList() {
-        return sessions.values().stream()
-                .map(u -> {
-                    String room = userToRoom.get(u);
-                    Map<String, String> userMap = new HashMap<>();
-                    userMap.put("username", u);
-                    userMap.put("status", "online");
-                    if (room != null) {
-                        userMap.put("currentRoom", room);
-                    }
-                    return userMap;
-                })
-                .collect(Collectors.toList());
+        // Use a map to ensure unique usernames if multiple sessions exist for the same user
+        Map<String, Map<String, String>> uniqueUsers = new HashMap<>();
+        
+        sessions.values().forEach(u -> {
+            String room = userToRoom.get(u);
+            Map<String, String> userMap = new HashMap<>();
+            userMap.put("username", u);
+            userMap.put("status", "online");
+            if (room != null) {
+                userMap.put("currentRoom", room);
+            }
+            uniqueUsers.put(u, userMap);
+        });
+        
+        return new ArrayList<>(uniqueUsers.values());
     }
 
     private void broadcastToRoom(String roomId, WebSocketMessageDto message) {

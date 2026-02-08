@@ -164,11 +164,22 @@ export function useWebSocket(username: string | null) {
       wsRef.current.close();
       wsRef.current = null;
     }
+    
+    // Reset all states to prevent stale data for the next user
     setConnectionState({
       isConnected: false,
       lastPing: null,
       reconnectAttempts: 0,
     });
+    setOnlineUsers([]);
+    setRooms([
+      { id: 'general', name: 'General', description: 'General discussion room', userCount: 0, users: [] },
+      { id: 'tech', name: 'Technology', description: 'Tech talk and discussions', userCount: 0, users: [] },
+      { id: 'random', name: 'Random', description: 'Off-topic conversations', userCount: 0, users: [] },
+      { id: 'announcements', name: 'Announcements', description: 'Important updates', userCount: 0, users: [] },
+    ]);
+    setCurrentRoom(null);
+    setNotifications([]);
   }, []);
 
   const joinRoom = useCallback((roomId: string) => {
