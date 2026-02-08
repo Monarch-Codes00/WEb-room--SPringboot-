@@ -195,7 +195,16 @@ public class ChatServiceImpl implements ChatService {
 
     private List<Map<String, String>> getOnlineUsersList() {
         return sessions.values().stream()
-                .map(u -> Map.of("username", u, "status", "online"))
+                .map(u -> {
+                    String room = userToRoom.get(u);
+                    Map<String, String> userMap = new HashMap<>();
+                    userMap.put("username", u);
+                    userMap.put("status", "online");
+                    if (room != null) {
+                        userMap.put("currentRoom", room);
+                    }
+                    return userMap;
+                })
                 .collect(Collectors.toList());
     }
 

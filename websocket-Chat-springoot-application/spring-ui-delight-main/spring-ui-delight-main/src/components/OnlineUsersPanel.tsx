@@ -77,7 +77,7 @@ export function OnlineUsersPanel({
                           <span className="ml-2 text-xs text-muted-foreground">(you)</span>
                         )}
                       </p>
-                      {user.currentRoom && (
+                      {user.currentRoom && title !== "Room Members" && (
                         <p className="text-xs text-muted-foreground truncate">
                           In: {user.currentRoom}
                         </p>
