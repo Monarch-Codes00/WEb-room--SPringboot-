@@ -6,6 +6,8 @@ export enum MessageType {
   SYSTEM = 'SYSTEM',
   ROOM_PRESENCE = 'ROOM_PRESENCE',
   ONLINE_USERS = 'ONLINE_USERS',
+  CHAT = 'CHAT',
+  LOGIN = 'LOGIN',
 }
 
 export interface User {

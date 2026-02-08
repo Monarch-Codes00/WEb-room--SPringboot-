@@ -7,5 +7,6 @@ public enum MessageType {
     SYSTEM,
     ROOM_PRESENCE,
     ONLINE_USERS,
-    CHAT // Added CHAT to support chat messages
+    CHAT,
+    LOGIN
 }

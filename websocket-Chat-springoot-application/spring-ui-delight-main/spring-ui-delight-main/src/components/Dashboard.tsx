@@ -5,6 +5,7 @@ import { RoomCard } from './RoomCard';
 import { OnlineUsersPanel } from './OnlineUsersPanel';
 import { NotificationsFeed } from './NotificationsFeed';
 import { useWebSocketContext } from '@/context/WebSocketContext';
+import { Users } from 'lucide-react';
 
 export function Dashboard() {
   const {
