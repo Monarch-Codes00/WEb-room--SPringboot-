@@ -1,11 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, RefreshCw } from 'lucide-react';
+import { Users, RefreshCw, Phone, Video } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { UserAvatar } from './UserAvatar';
 import { User } from '@/types/websocket';
 import { cn } from '@/lib/utils';
+import { useWebSocketContext } from '@/context/WebSocketContext';
 
 interface OnlineUsersPanelProps {
   users: User[];
@@ -22,6 +23,7 @@ export function OnlineUsersPanel({
   title = "Online Users",
   icon = <Users className="h-4 w-4 text-primary" />
 }: OnlineUsersPanelProps) {
+  const { rtc } = useWebSocketContext();
   return (
     <Card className="h-full">
       <CardHeader className="pb-3">
@@ -83,6 +85,27 @@ export function OnlineUsersPanel({
                         </p>
                       )}
                     </div>
+
+                    {title === "Room Members" && user.username !== currentUsername && (
+                      <div className="flex gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+                          onClick={() => rtc.startCall(user.username, 'audio')}
+                        >
+                          <Phone className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+                          onClick={() => rtc.startCall(user.username, 'video')}
+                        >
+                          <Video className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </motion.div>
                 ))}
               </div>
