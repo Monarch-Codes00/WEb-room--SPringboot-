@@ -1,4 +1,5 @@
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
+import { useWebRTC } from '@/hooks/useWebRTC';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useAuth } from './AuthContext';
 
@@ -15,6 +16,7 @@ interface WebSocketContextType {
   requestOnlineUsers: ReturnType<typeof useWebSocket>['requestOnlineUsers'];
   requestRoomPresence: ReturnType<typeof useWebSocket>['requestRoomPresence'];
   sendMessage: ReturnType<typeof useWebSocket>['sendMessage'];
+  rtc: ReturnType<typeof useWebRTC>;
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -22,6 +24,7 @@ const WebSocketContext = createContext<WebSocketContextType | undefined>(undefin
 export function WebSocketProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const websocket = useWebSocket(user?.username || null);
+  const rtc = useWebRTC(user?.username || null, websocket.sendMessage);
 
   useEffect(() => {
     if (user?.username) {
@@ -36,6 +39,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     <WebSocketContext.Provider
       value={{
         ...websocket,
+        rtc,
       }}
     >
       {children}
