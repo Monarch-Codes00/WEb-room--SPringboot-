@@ -3,8 +3,8 @@ spring:
     name: websocket-app
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/chatapp}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:password}
+    username: postgres
+    password: cheistopher
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
