@@ -1,12 +1,8 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useAuth } from './AuthContext';
 
 interface WebSocketContextType {
-  username: string | null;
-  setUsername: (name: string | null) => void;
-  isLoggedIn: boolean;
-  login: (name: string) => void;
-  logout: () => void;
   connectionState: ReturnType<typeof useWebSocket>['connectionState'];
   onlineUsers: ReturnType<typeof useWebSocket>['onlineUsers'];
   rooms: ReturnType<typeof useWebSocket>['rooms'];
@@ -18,31 +14,27 @@ interface WebSocketContextType {
   leaveRoom: ReturnType<typeof useWebSocket>['leaveRoom'];
   requestOnlineUsers: ReturnType<typeof useWebSocket>['requestOnlineUsers'];
   requestRoomPresence: ReturnType<typeof useWebSocket>['requestRoomPresence'];
+  sendMessage: ReturnType<typeof useWebSocket>['sendMessage'];
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
 
 export function WebSocketProvider({ children }: { children: ReactNode }) {
-  const [username, setUsername] = useState<string | null>(null);
-  const websocket = useWebSocket(username);
+  const { user } = useAuth();
+  const websocket = useWebSocket(user?.username || null);
 
-  const login = useCallback((name: string) => {
-    setUsername(name);
-  }, []);
-
-  const logout = useCallback(() => {
-    websocket.disconnect();
-    setUsername(null);
-  }, [websocket]);
+  useEffect(() => {
+    if (user?.username) {
+      websocket.connect();
+    }
+    return () => {
+      websocket.disconnect();
+    };
+  }, [user?.username]);
 
   return (
     <WebSocketContext.Provider
       value={{
-        username,
-        setUsername,
-        isLoggedIn: !!username,
-        login,
-        logout,
         ...websocket,
       }}
     >
