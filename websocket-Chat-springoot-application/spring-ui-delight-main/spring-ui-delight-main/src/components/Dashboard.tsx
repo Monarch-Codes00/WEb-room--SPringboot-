@@ -39,6 +39,7 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
+      <CallOverlay />
       <DashboardHeader
         username={username}
         connectionState={connectionState}
