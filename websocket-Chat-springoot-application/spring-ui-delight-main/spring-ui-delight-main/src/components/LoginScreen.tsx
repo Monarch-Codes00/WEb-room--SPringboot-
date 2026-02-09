@@ -1,39 +1,48 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { User, ArrowRight, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, ArrowRight, Zap, Mail, Lock, Phone, UserCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/context/AuthContext';
+import { api } from '@/lib/api';
+import { toast } from 'sonner';
 
-interface LoginScreenProps {
-  onLogin: (username: string) => void;
-}
+export function LoginScreen() {
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    fullName: '',
+    phoneNumber: ''
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
 
-export function LoginScreen({ onLogin }: LoginScreenProps) {
-  const [username, setUsername] = useState('');
-  const [error, setError] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    const trimmedUsername = username.trim();
-    if (!trimmedUsername) {
-      setError('Please enter a username');
-      return;
+    try {
+      const endpoint = isRegistering ? '/auth/register' : '/auth/login';
+      const data = await api.post(endpoint, formData);
+      login(data.token, {
+        id: data.id,
+        username: data.username,
+        fullName: data.fullName,
+        phoneNumber: data.phoneNumber
+      });
+      toast.success(isRegistering ? 'Account created successfully!' : 'Logged in successfully!');
+    } catch (error: any) {
+      toast.error(error.message || 'Authentication failed');
+    } finally {
+      setIsLoading(false);
     }
-    
-    if (trimmedUsername.length < 2) {
-      setError('Username must be at least 2 characters');
-      return;
-    }
-    
-    if (trimmedUsername.length > 20) {
-      setError('Username must be less than 20 characters');
-      return;
-    }
+  };
 
-    onLogin(trimmedUsername);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
   return (
@@ -59,47 +68,106 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
         <Card className="shadow-card-hover border-primary/10">
           <CardHeader className="text-center">
-            <CardTitle className="text-xl">Welcome</CardTitle>
+            <CardTitle className="text-xl">
+              {isRegistering ? 'Create an Account' : 'Welcome Back'}
+            </CardTitle>
             <CardDescription>
-              Enter your username to join the system
+              {isRegistering 
+                ? 'Join our community and start chatting' 
+                : 'Enter your credentials to access your account'}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <AnimatePresence mode="wait">
+                {isRegistering && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-4 overflow-hidden"
+                  >
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName">Full Name</Label>
+                      <div className="relative">
+                        <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="fullName"
+                          placeholder="John Doe"
+                          value={formData.fullName}
+                          onChange={handleChange}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phoneNumber">Phone Number</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="phoneNumber"
+                          placeholder="+1234567890"
+                          value={formData.phoneNumber}
+                          onChange={handleChange}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="username"
-                    type="text"
-                    placeholder="Enter your username"
-                    value={username}
-                    onChange={(e) => {
-                      setUsername(e.target.value);
-                      setError('');
-                    }}
+                    placeholder="johndoe"
+                    value={formData.username}
+                    onChange={handleChange}
                     className="pl-10"
-                    autoComplete="off"
-                    autoFocus
+                    autoComplete="username"
+                    required
                   />
                 </div>
-                {error && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-sm text-destructive"
-                  >
-                    {error}
-                  </motion.p>
-                )}
               </div>
 
-              <Button type="submit" className="w-full group">
-                Join
-                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="pl-10"
+                    autoComplete="current-password"
+                    required
+                  />
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full group" disabled={isLoading}>
+                {isLoading ? 'Processing...' : (isRegistering ? 'Sign Up' : 'Sign In')}
+                {!isLoading && <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />}
               </Button>
             </form>
+
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={() => setIsRegistering(!isRegistering)}
+                className="text-sm text-primary hover:underline transition-all"
+              >
+                {isRegistering 
+                  ? 'Already have an account? Sign In' 
+                  : "Don't have an account? Sign Up"}
+              </button>
+            </div>
           </CardContent>
         </Card>
 
@@ -109,7 +177,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           transition={{ delay: 0.5 }}
           className="text-center text-xs text-muted-foreground mt-6"
         >
-          Real-Time Presence & Room Management System
+          Secure Auth & Real-Time Presence System
         </motion.p>
       </motion.div>
     </div>

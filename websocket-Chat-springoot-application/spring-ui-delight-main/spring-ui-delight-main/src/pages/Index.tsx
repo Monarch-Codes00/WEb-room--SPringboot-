@@ -1,23 +1,24 @@
 import { LoginScreen } from '@/components/LoginScreen';
 import { Dashboard } from '@/components/Dashboard';
-import { WebSocketProvider, useWebSocketContext } from '@/context/WebSocketContext';
+import { WebSocketProvider } from '@/context/WebSocketContext';
+import { useAuth } from '@/context/AuthContext';
 
 function AppContent() {
-  const { isLoggedIn, login } = useWebSocketContext();
+  const { token, user } = useAuth();
 
-  if (!isLoggedIn) {
-    return <LoginScreen onLogin={login} />;
+  if (!token || !user) {
+    return <LoginScreen />;
   }
 
-  return <Dashboard />;
+  return (
+    <WebSocketProvider>
+      <Dashboard />
+    </WebSocketProvider>
+  );
 }
 
 const Index = () => {
-  return (
-    <WebSocketProvider>
-      <AppContent />
-    </WebSocketProvider>
-  );
+  return <AppContent />;
 };
 
 export default Index;
