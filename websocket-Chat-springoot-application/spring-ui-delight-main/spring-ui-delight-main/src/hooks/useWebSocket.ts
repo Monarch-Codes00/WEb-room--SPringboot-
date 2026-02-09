@@ -109,6 +109,16 @@ export function useWebSocket(username: string | null) {
         case MessageType.LEAVE:
           addNotification(`${message.payload.username} left ${message.payload.roomName || 'the room'}`, 'warning');
           break;
+
+        case MessageType.OFFER:
+        case MessageType.ANSWER:
+        case MessageType.ICE_CANDIDATE:
+        case MessageType.CALL_REQUEST:
+        case MessageType.CALL_RESPONSE:
+        case MessageType.CALL_HANGUP:
+          // Emit custom event for WebRTC logic to pick up
+          window.dispatchEvent(new CustomEvent('webrtc-signal', { detail: message }));
+          break;
         
         default:
           console.log('Unknown message type:', message.type);
@@ -117,6 +127,7 @@ export function useWebSocket(username: string | null) {
       console.error('Error parsing WebSocket message:', error);
     }
   }, [addNotification]);
+
 
   const connect = useCallback(() => {
     if (!username) return;
