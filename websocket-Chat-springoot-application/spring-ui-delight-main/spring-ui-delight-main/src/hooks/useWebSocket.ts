@@ -16,6 +16,22 @@ export function useWebSocket(username: string | null) {
   const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [currentRoom, setCurrentRoom] = useState<string | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+
+  const fetchMessageHistory = useCallback(async (roomId: string) => {
+    try {
+      const data = await api.get(`/messages/${roomId}`);
+      setMessages(data.map((m: any) => ({
+        id: m.id,
+        content: m.content,
+        senderName: m.senderName,
+        timestamp: new Date(m.timestamp),
+        type: m.type
+      })));
+    } catch (error) {
+      console.error('Failed to fetch messages', error);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchRooms = async () => {
@@ -104,6 +120,16 @@ export function useWebSocket(username: string | null) {
         
         case MessageType.LEAVE:
           addNotification(`${message.payload.username} left ${message.payload.roomName || 'the room'}`, 'warning');
+          break;
+
+        case MessageType.CHAT:
+          setMessages(prev => [...prev, {
+            id: message.payload.id || crypto.randomUUID(),
+            content: message.payload.content,
+            senderName: message.senderName,
+            timestamp: new Date(message.timestamp),
+            type: message.type
+          }]);
           break;
 
         case MessageType.OFFER:
