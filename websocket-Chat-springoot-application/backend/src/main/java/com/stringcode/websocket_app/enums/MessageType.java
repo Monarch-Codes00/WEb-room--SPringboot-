@@ -8,5 +8,11 @@ public enum MessageType {
     ROOM_PRESENCE,
     ONLINE_USERS,
     CHAT,
-    LOGIN
+    LOGIN,
+    OFFER,
+    ANSWER,
+    ICE_CANDIDATE,
+    CALL_REQUEST,
+    CALL_RESPONSE,
+    CALL_HANGUP
 }

@@ -78,6 +78,12 @@ public class ChatServiceImpl implements ChatService {
                 handleLeave(session, message);
                 break;
             case CHAT:
+            case OFFER:
+            case ANSWER:
+            case ICE_CANDIDATE:
+            case CALL_REQUEST:
+            case CALL_RESPONSE:
+            case CALL_HANGUP:
                 String roomId = userToRoom.get(username);
                 if (roomId != null) {
                     broadcastToRoom(roomId, message);
