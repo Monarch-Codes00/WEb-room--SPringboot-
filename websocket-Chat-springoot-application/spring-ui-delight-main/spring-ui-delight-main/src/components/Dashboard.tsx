@@ -1,16 +1,20 @@
-import { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardHeader } from './DashboardHeader';
 import { RoomCard } from './RoomCard';
 import { OnlineUsersPanel } from './OnlineUsersPanel';
 import { NotificationsFeed } from './NotificationsFeed';
 import { useWebSocketContext } from '@/context/WebSocketContext';
-import { Users } from 'lucide-react';
+import { Users, Settings, MessageSquare } from 'lucide-react';
+import { ProfileSettings } from './ProfileSettings';
+
+import { useAuth } from '@/context/AuthContext';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 export function Dashboard() {
+  const [activeTab, setActiveTab] = useState<'rooms' | 'profile'>('rooms');
+  const { user, logout } = useAuth();
   const {
-    username,
-    logout,
     connectionState,
     connect,
     onlineUsers,
@@ -21,6 +25,8 @@ export function Dashboard() {
     leaveRoom,
     requestOnlineUsers,
   } = useWebSocketContext();
+
+  const username = user?.username;
 
   useEffect(() => {
     if (username && !connectionState.isConnected) {
@@ -40,37 +46,68 @@ export function Dashboard() {
       />
 
       <main className="container px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Rooms Section */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="lg:col-span-7 xl:col-span-8"
-          >
-            <div className="mb-4">
-              <h2 className="text-2xl font-bold">Rooms</h2>
-              <p className="text-muted-foreground">Join a room to see who's there</p>
-            </div>
+        <div className="flex justify-center mb-8">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full max-w-md">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="rooms">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Rooms
+              </TabsTrigger>
+              <TabsTrigger value="profile">
+                <Settings className="w-4 h-4 mr-2" />
+                Profile
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {rooms.map((room, index) => (
-                <motion.div
-                  key={room.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 + index * 0.05 }}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-7 xl:col-span-8">
+            <AnimatePresence mode="wait">
+              {activeTab === 'rooms' ? (
+                <motion.section
+                  key="rooms-tab"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <RoomCard
-                    room={room}
-                    isCurrentRoom={currentRoom === room.id}
-                    onJoin={() => joinRoom(room.id)}
-                    onLeave={leaveRoom}
-                  />
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
+                  <div className="mb-4">
+                    <h2 className="text-2xl font-bold">Rooms</h2>
+                    <p className="text-muted-foreground">Join a room to see who's there</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {rooms.map((room, index) => (
+                      <motion.div
+                        key={room.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.15 + index * 0.05 }}
+                      >
+                        <RoomCard
+                          room={room}
+                          isCurrentRoom={currentRoom === room.id}
+                          onJoin={() => joinRoom(room.id)}
+                          onLeave={leaveRoom}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.section>
+              ) : (
+                <motion.section
+                  key="profile-tab"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ProfileSettings />
+                </motion.section>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Sidebar */}
           <motion.aside
