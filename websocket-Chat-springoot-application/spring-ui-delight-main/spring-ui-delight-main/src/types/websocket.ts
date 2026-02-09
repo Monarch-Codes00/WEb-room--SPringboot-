@@ -8,6 +8,12 @@ export enum MessageType {
   ONLINE_USERS = 'ONLINE_USERS',
   CHAT = 'CHAT',
   LOGIN = 'LOGIN',
+  OFFER = 'OFFER',
+  ANSWER = 'ANSWER',
+  ICE_CANDIDATE = 'ICE_CANDIDATE',
+  CALL_REQUEST = 'CALL_REQUEST',
+  CALL_RESPONSE = 'CALL_RESPONSE',
+  CALL_HANGUP = 'CALL_HANGUP',
 }
 
 export interface User {
