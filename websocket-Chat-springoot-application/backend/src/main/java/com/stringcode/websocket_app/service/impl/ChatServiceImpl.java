@@ -3,6 +3,8 @@ package com.stringcode.websocket_app.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stringcode.websocket_app.dto.WebSocketMessageDto;
 import com.stringcode.websocket_app.enums.MessageType;
+import com.stringcode.websocket_app.model.ChatMessage;
+import com.stringcode.websocket_app.repository.ChatMessageRepository;
 import com.stringcode.websocket_app.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ public class ChatServiceImpl implements ChatService {
 
     private static final Logger logger = LoggerFactory.getLogger(ChatServiceImpl.class);
     private final ObjectMapper objectMapper;
+    private final ChatMessageRepository chatMessageRepository;
 
     // session → username mapping
     private final Map<WebSocketSession, String> sessions = new ConcurrentHashMap<>();
@@ -78,17 +81,20 @@ public class ChatServiceImpl implements ChatService {
                 handleLeave(session, message);
                 break;
             case CHAT:
-            case OFFER:
-            case ANSWER:
-            case ICE_CANDIDATE:
-            case CALL_REQUEST:
-            case CALL_RESPONSE:
-            case CALL_HANGUP:
                 String roomId = userToRoom.get(username);
                 if (roomId != null) {
+                    ChatMessage chatMsg = ChatMessage.builder()
+                            .type(message.getType())
+                            .content(String.valueOf(message.getPayload()))
+                            .senderName(username)
+                            .roomId(roomId)
+                            .timestamp(LocalDateTime.now())
+                            .build();
+                    chatMessageRepository.save(chatMsg);
                     broadcastToRoom(roomId, message);
                 }
                 break;
+            case OFFER:
             case ONLINE_USERS:
                 broadcastOnlineUsers(); 
                 break;
