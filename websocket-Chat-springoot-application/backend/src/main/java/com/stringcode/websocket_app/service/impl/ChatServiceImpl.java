@@ -95,6 +95,16 @@ public class ChatServiceImpl implements ChatService {
                 }
                 break;
             case OFFER:
+            case ANSWER:
+            case ICE_CANDIDATE:
+            case CALL_REQUEST:
+            case CALL_RESPONSE:
+            case CALL_HANGUP:
+                String sRoomId = userToRoom.get(username);
+                if (sRoomId != null) {
+                    broadcastToRoom(sRoomId, message);
+                }
+                break;
             case ONLINE_USERS:
                 broadcastOnlineUsers(); 
                 break;
