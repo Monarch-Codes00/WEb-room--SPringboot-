@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { MessageType, WebSocketMessage, User, Room, ConnectionState, SystemNotification } from '@/types/websocket';
+import { api } from '@/lib/api';
 
 const WEBSOCKET_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8080/ws';
 const HEARTBEAT_INTERVAL = 30000; // 30 seconds
@@ -19,19 +20,14 @@ export function useWebSocket(username: string | null) {
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/rooms', {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setRooms(data.map((r: any) => ({
-            id: r.roomId,
-            name: r.name,
-            description: r.description,
-            userCount: 0,
-            users: []
-          })));
-        }
+        const data = await api.get('/rooms');
+        setRooms(data.map((r: any) => ({
+          id: r.roomId,
+          name: r.name,
+          description: r.description,
+          userCount: 0,
+          users: []
+        })));
       } catch (error) {
         console.error('Failed to fetch rooms', error);
       }
