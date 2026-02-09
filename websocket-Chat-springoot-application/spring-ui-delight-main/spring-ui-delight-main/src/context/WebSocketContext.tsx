@@ -16,6 +16,7 @@ interface WebSocketContextType {
   requestOnlineUsers: ReturnType<typeof useWebSocket>['requestOnlineUsers'];
   requestRoomPresence: ReturnType<typeof useWebSocket>['requestRoomPresence'];
   sendMessage: ReturnType<typeof useWebSocket>['sendMessage'];
+  messages: ReturnType<typeof useWebSocket>['messages'];
   rtc: ReturnType<typeof useWebRTC>;
 }
 

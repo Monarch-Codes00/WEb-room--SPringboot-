@@ -232,10 +232,12 @@ export function useWebSocket(username: string | null) {
     if (currentRoom) {
       sendMessage(MessageType.LEAVE, { roomId: currentRoom, username });
     }
+    setMessages([]); // Clear current messages
     sendMessage(MessageType.JOIN, { roomId, username });
     setCurrentRoom(roomId);
     sendMessage(MessageType.ROOM_PRESENCE, { roomId });
-  }, [currentRoom, sendMessage, username]);
+    fetchMessageHistory(roomId);
+  }, [currentRoom, sendMessage, username, fetchMessageHistory]);
 
   const leaveRoom = useCallback(() => {
     if (currentRoom) {
@@ -272,5 +274,6 @@ export function useWebSocket(username: string | null) {
     requestOnlineUsers,
     requestRoomPresence,
     sendMessage,
+    messages,
   };
 }

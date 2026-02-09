@@ -8,6 +8,7 @@ import { useWebSocketContext } from '@/context/WebSocketContext';
 import { Users, Settings, MessageSquare } from 'lucide-react';
 import { ProfileSettings } from './ProfileSettings';
 import { CallOverlay } from './CallOverlay';
+import { ChatRoom } from './ChatRoom';
 
 import { useAuth } from '@/context/AuthContext';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -45,6 +46,7 @@ export function Dashboard() {
         connectionState={connectionState}
         onReconnect={connect}
         onLogout={logout}
+        onSettingsClick={() => setActiveTab('profile')}
       />
 
       <main className="container px-4 py-6">
@@ -74,28 +76,34 @@ export function Dashboard() {
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <div className="mb-4">
-                    <h2 className="text-2xl font-bold">Rooms</h2>
-                    <p className="text-muted-foreground">Join a room to see who's there</p>
-                  </div>
+                  {currentRoom ? (
+                    <ChatRoom roomId={currentRoom} onBack={leaveRoom} />
+                  ) : (
+                    <>
+                      <div className="mb-4">
+                        <h2 className="text-2xl font-bold">Rooms</h2>
+                        <p className="text-muted-foreground">Join a room to see who's there</p>
+                      </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {rooms.map((room, index) => (
-                      <motion.div
-                        key={room.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.15 + index * 0.05 }}
-                      >
-                        <RoomCard
-                          room={room}
-                          isCurrentRoom={currentRoom === room.id}
-                          onJoin={() => joinRoom(room.id)}
-                          onLeave={leaveRoom}
-                        />
-                      </motion.div>
-                    ))}
-                  </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {rooms.map((room, index) => (
+                          <motion.div
+                            key={room.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.15 + index * 0.05 }}
+                          >
+                            <RoomCard
+                              room={room}
+                              isCurrentRoom={false}
+                              onJoin={() => joinRoom(room.id)}
+                              onLeave={leaveRoom}
+                            />
+                          </motion.div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </motion.section>
               ) : (
                 <motion.section

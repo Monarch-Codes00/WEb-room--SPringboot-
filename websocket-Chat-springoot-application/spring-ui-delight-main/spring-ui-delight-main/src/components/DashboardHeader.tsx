@@ -10,13 +10,15 @@ interface DashboardHeaderProps {
   connectionState: ConnectionState;
   onReconnect: () => void;
   onLogout: () => void;
+  onSettingsClick?: () => void;
 }
 
 export function DashboardHeader({ 
   username, 
   connectionState, 
   onReconnect, 
-  onLogout 
+  onLogout,
+  onSettingsClick
 }: DashboardHeaderProps) {
   return (
     <motion.header
@@ -51,7 +53,7 @@ export function DashboardHeader({
             <span className="text-sm font-medium hidden sm:inline">{username}</span>
           </div>
 
-          <Button variant="ghost" size="icon" className="h-9 w-9" title="Settings">
+          <Button variant="ghost" size="icon" className="h-9 w-9" title="Settings" onClick={onSettingsClick}>
             <Settings className="h-4 w-4" />
           </Button>
 
