@@ -7,6 +7,7 @@ import { NotificationsFeed } from './NotificationsFeed';
 import { useWebSocketContext } from '@/context/WebSocketContext';
 import { Users, Settings, MessageSquare } from 'lucide-react';
 import { ProfileSettings } from './ProfileSettings';
+import { CallOverlay } from './CallOverlay';
 
 import { useAuth } from '@/context/AuthContext';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';

@@ -43,7 +43,7 @@ export function CallOverlay() {
               <Button variant="destructive" size="icon" className="w-12 h-12 rounded-full" onClick={rtc.declineCall}>
                 <PhoneOff className="w-6 h-6" />
               </Button>
-              <Button variant="success" size="icon" className="w-12 h-12 rounded-full" onClick={rtc.acceptCall}>
+              <Button variant="default" size="icon" className="w-12 h-12 rounded-full bg-green-500 hover:bg-green-600" onClick={rtc.acceptCall}>
                 <Phone className="w-6 h-6" />
               </Button>
             </div>
