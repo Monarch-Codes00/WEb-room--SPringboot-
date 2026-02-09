@@ -13,13 +13,31 @@ export function useWebSocket(username: string | null) {
     reconnectAttempts: 0,
   });
   const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
-  const [rooms, setRooms] = useState<Room[]>([
-    { id: 'general', name: 'General', description: 'General discussion room', userCount: 0, users: [] },
-    { id: 'tech', name: 'Technology', description: 'Tech talk and discussions', userCount: 0, users: [] },
-    { id: 'random', name: 'Random', description: 'Off-topic conversations', userCount: 0, users: [] },
-    { id: 'announcements', name: 'Announcements', description: 'Important updates', userCount: 0, users: [] },
-  ]);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [currentRoom, setCurrentRoom] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/rooms', {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setRooms(data.map((r: any) => ({
+            id: r.roomId,
+            name: r.name,
+            description: r.description,
+            userCount: 0,
+            users: []
+          })));
+        }
+      } catch (error) {
+        console.error('Failed to fetch rooms', error);
+      }
+    };
+    if (username) fetchRooms();
+  }, [username]);
   const [notifications, setNotifications] = useState<SystemNotification[]>([]);
 
   const wsRef = useRef<WebSocket | null>(null);
